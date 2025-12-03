@@ -1,0 +1,59 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    # Service Container untuk Database Test
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: forumapi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '22.18.0' # Sesuaikan dengan versi Node Anda
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Migrations (Test)
+      run: npm run migrate:test
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGUSER: test_user
+        PGPASSWORD: test_password
+        PGDATABASE: forumapi_test
+
+    - name: Run Tests
+      run: npm test
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGUSER: test_user
+        PGPASSWORD: test_password
+        PGDATABASE: forumapi_test
+        ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }} # Masukkan dummy key di Github Secrets atau hardcode utk test
+        REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}
+        ACCESS_TOKEN_AGE: 3000
