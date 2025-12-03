@@ -6,6 +6,7 @@ const users = require('../../Interfaces/http/api/users');
 const authentications = require('../../Interfaces/http/api/authentications');
 const threads = require('../../Interfaces/http/api/threads');
 const comments = require('../../Interfaces/http/api/comments');
+const likes = require('../../Interfaces/http/api/likes'); // Import baru
 const replies = require('../../Interfaces/http/api/replies'); // Import plugin replies
 
 const createServer = async (container) => {
@@ -40,6 +41,10 @@ const createServer = async (container) => {
 
   // 3. Registrasi plugin internal
   await server.register([
+    {
+      plugin: likes,
+      options: { container },
+    },
     {
       plugin: users,
       options: { container },

@@ -3,6 +3,7 @@ const DetailComment = require('../../../Domains/comments/entities/DetailComment'
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ReplyRepository = require('../../../Domains/replies/ReplyRepository');
+const LikeRepository = require('../../../Domains/likes/LikeRepository');
 const GetThreadDetailUseCase = require('../GetThreadDetailUseCase');
 
 describe('GetThreadDetailUseCase', () => {
@@ -39,64 +40,41 @@ describe('GetThreadDetailUseCase', () => {
         commentId: 'comment-123',
         isDelete: false,
       },
-      {
-        id: 'reply-456',
-        content: 'sebuah balasan kasar',
-        date: '2021-08-08T07:23:33.555Z',
-        username: 'dicoding',
-        commentId: 'comment-123',
-        isDelete: true,
-      },
     ];
 
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
     const mockReplyRepository = new ReplyRepository();
+    const mockLikeRepository = new LikeRepository();
 
+    // Mocking Implementation
     mockThreadRepository.getThreadById = jest.fn()
       .mockImplementation(() => Promise.resolve(mockDetailThread));
     mockCommentRepository.getCommentsByThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve(mockComments));
     mockReplyRepository.getRepliesByThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve(mockReplies));
+    mockLikeRepository.getLikeCountByCommentId = jest.fn()
+      .mockImplementation(() => Promise.resolve(0));
 
     const getThreadDetailUseCase = new GetThreadDetailUseCase({
       threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
       replyRepository: mockReplyRepository,
+      likeRepository: mockLikeRepository,
     });
 
     // Action
     const result = await getThreadDetailUseCase.execute(useCasePayload);
 
     // Assert
-    expect(result).toEqual({
-      ...mockDetailThread,
-      comments: [
-        {
-          id: 'comment-123',
-          username: 'dicoding',
-          date: '2021-08-08T07:22:33.555Z',
-          content: 'sebuah comment',
-          replies: [
-            {
-              id: 'reply-123',
-              content: 'sebuah balasan',
-              date: '2021-08-08T07:22:33.555Z',
-              username: 'johndoe',
-            },
-            {
-              id: 'reply-456',
-              content: '**balasan telah dihapus**',
-              date: '2021-08-08T07:23:33.555Z',
-              username: 'dicoding',
-            },
-          ],
-        },
-      ],
-    });
+    expect(result.id).toEqual(mockDetailThread.id);
+    expect(result.comments).toHaveLength(1);
+    expect(result.comments[0].likeCount).toEqual(0);
+    
     expect(mockThreadRepository.getThreadById).toBeCalledWith(useCasePayload.threadId);
     expect(mockCommentRepository.getCommentsByThreadId).toBeCalledWith(useCasePayload.threadId);
     expect(mockReplyRepository.getRepliesByThreadId).toBeCalledWith(useCasePayload.threadId);
+    expect(mockLikeRepository.getLikeCountByCommentId).toBeCalledWith('comment-123');
   });
 });

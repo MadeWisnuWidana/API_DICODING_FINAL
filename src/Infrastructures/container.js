@@ -32,6 +32,10 @@ const AddCommentUseCase = require('../Applications/use_case/AddCommentUseCase');
 
 const DeleteCommentUseCase = require('../Applications/use_case/DeleteCommentUseCase');
 
+const LikeRepository = require('../Domains/likes/LikeRepository');
+const LikeRepositoryPostgres = require('./repository/LikeRepositoryPostgres');
+const ToggleLikeCommentUseCase = require('../Applications/use_case/ToggleLikeCommentUseCase');
+
 // use case
 const AddUserUseCase = require('../Applications/use_case/AddUserUseCase');
 const AuthenticationTokenManager = require('../Applications/security/AuthenticationTokenManager');
@@ -47,6 +51,28 @@ const container = createContainer();
 
 // registering services and repository
 container.register([
+  {
+    key: LikeRepository.name,
+    Class: LikeRepositoryPostgres,
+    parameter: {
+      dependencies: [
+        { concrete: pool },
+        { concrete: nanoid },
+      ],
+    },
+  },
+  {
+    key: ToggleLikeCommentUseCase.name,
+    Class: ToggleLikeCommentUseCase,
+    parameter: {
+      injectType: 'destructuring',
+      dependencies: [
+        { name: 'likeRepository', internal: LikeRepository.name },
+        { name: 'threadRepository', internal: ThreadRepository.name },
+        { name: 'commentRepository', internal: CommentRepository.name },
+      ],
+    },
+  },
   {
     key: ReplyRepository.name,
     Class: ReplyRepositoryPostgres,
@@ -177,6 +203,10 @@ container.register([
         {
           name: 'replyRepository', // Tambahkan ini
           internal: ReplyRepository.name,
+        },
+        {
+          name: 'likeRepository',
+          internal: LikeRepository.name,
         },
       ],
     },
