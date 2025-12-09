@@ -14,6 +14,11 @@ const routes = (handler) => [
     handler: handler.getThreadHandler,
     // Tidak perlu options auth karena resource terbuka
   },
+  {
+    method: 'GET',
+    path: '/threads',
+    handler: (request, h) => h.response({ status: 'success', message: 'Rate limit test endpoint' }).code(200),
+  },
 ];
 
 module.exports = routes;
