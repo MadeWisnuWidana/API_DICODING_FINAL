@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-  push:            
+  push:
     branches:
       - main
 
@@ -35,13 +35,14 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '22.18.0' # Sesuaikan dengan versi Node Anda
+        node-version: '22.x' # Menggunakan versi 22 terbaru
 
     - name: Install dependencies
       run: npm install
 
     - name: Run Migrations (Test)
-      run: npm run migrate:test
+      # PENTING: Gunakan 'migrate up' agar membaca ENV VAR, bukan file config json
+      run: npm run migrate up
       env:
         PGHOST: localhost
         PGPORT: 5432
@@ -57,6 +58,7 @@ jobs:
         PGUSER: test_user
         PGPASSWORD: test_password
         PGDATABASE: forumapi_test
-        ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY }} # Masukkan dummy key di Github Secrets atau hardcode utk test
-        REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY }}
+        # Gunakan dummy jika secrets belum diset, agar test tetap jalan
+        ACCESS_TOKEN_KEY: ${{ secrets.ACCESS_TOKEN_KEY || 'dummy-access-key-test' }}
+        REFRESH_TOKEN_KEY: ${{ secrets.REFRESH_TOKEN_KEY || 'dummy-refresh-key-test' }}
         ACCESS_TOKEN_AGE: 3000
